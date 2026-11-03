@@ -15,5 +15,6 @@
 # Composer
 /vendor/
 
-# module installed dirs
+# system dirs
 /bitrix/
+/.idea/
