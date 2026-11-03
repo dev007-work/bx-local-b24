@@ -1,0 +1,19 @@
+# Files
+*.log
+*.csv
+*.xml
+*.sql
+*.txt
+*.dt
+*.gz
+*.tar
+*.tar.gz
+*.bak
+*.old
+.htaccess
+
+# Composer
+/vendor/
+
+# module installed dirs
+/bitrix/
