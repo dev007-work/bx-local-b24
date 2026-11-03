@@ -1,0 +1,6 @@
+.ui-toolbar-after-title-buttons #tasks-buttonAdd {
+    border-color: #f00;
+}
+.ui-toolbar-after-title-buttons #tasks-buttonAdd > button {
+    background-color: #f00;
+}
