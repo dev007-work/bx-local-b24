@@ -10,17 +10,30 @@ global $APPLICATION, $USER;
 Loader::includeModule($modileId);
 
 $options = [
-    'settings' => [],
+    'general' => [
+        [
+            'FACTS_IBLOCK_ID',
+            'Идентификатор инфоблока "Факты о компании"',
+            '',
+            ['text'],
+        ],
+    ],
 ];
 $tabs = [
 	[
-		'DIV'   => 'settings',
-		'TAB'   => 'Настройки',
-		'TITLE' => 'Настройки',
+		'DIV'   => 'general',
+		'TAB'   => 'Основные настройки',
+		'TITLE' => 'Основные настройки',
 	],
 ];
 $tabControl = new CAdminTabControl('tabControl', $tabs);
 $tabControl->Begin();
+
+if (check_bitrix_sessid() && strlen($_POST['save']) > 0) {
+    foreach ($options as $optionGroup) {
+        __AdmSettingsSaveOptions($modileId, $optionGroup);
+    }
+}
 
 /** @var string $mid module id from GET */
 ?>
