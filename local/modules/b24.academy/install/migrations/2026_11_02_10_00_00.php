@@ -13,7 +13,7 @@ use Bitrix\Main\EventManager;
  */
 
 // копирование файлов стилей
-CopyDirFiles(__DIR__ . '../files/css', $docRoot . '/local/css', true, true);
+CopyDirFiles(__DIR__ . '/../files/css', $docRoot . '/local/css', true, true);
 // регистрация обработчика, подключающего стили в эпилоге
 $em->registerEventHandler(
     'main',
