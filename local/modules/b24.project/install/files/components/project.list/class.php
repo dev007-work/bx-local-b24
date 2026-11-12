@@ -9,11 +9,18 @@ use B24\Project\Integration\UI\PageNavigationFactory;
 use B24\Project\Integration\Intranet\Employee\Service as EmployeeService;
 use B24\Project\Project;
 use B24\Project\Service;
+use B24\Project\ServiceException;
+use Bitrix\Main\Engine\Contract\Controllerable;
+use Bitrix\Main\Engine\Response\AjaxJson;
+use Bitrix\Main\ErrorCollection;
+use Bitrix\Main\Error;
 use Bitrix\Main\Grid\Options;
+use Bitrix\Main\Loader;
+use Bitrix\UI\Buttons\CreateButton;
 
 defined('B_PROLOG_INCLUDED') || die();
 
-class ProjectListComponent extends CBitrixComponent
+class ProjectListComponent extends CBitrixComponent implements Controllerable
 {
     const GRID_ID = 'investment-project-grid';
 
@@ -25,6 +32,8 @@ class ProjectListComponent extends CBitrixComponent
     public function __construct($component = null)
     {
         parent::__construct($component);
+
+        Loader::requireModule('b24.project');
 
         $this->projectService = new Service();
         $this->navigationFactory = new PageNavigationFactory();
@@ -102,6 +111,16 @@ class ProjectListComponent extends CBitrixComponent
                 'GRID_ID'        => self::GRID_ID,
                 'ENABLE_LABEL'   => true,
                 'DISABLE_SEARCH' => true,
+            ],
+            'toolbar' => [
+                'buttons' => [
+                    new CreateButton([
+                        'link' => CComponentEngine::makePathFromTemplate(
+                            $this->arParams['DETAIL_PAGE_URL'],
+                            ['PROJECT_ID' => 0],
+                        )
+                    ])
+                ]
             ],
         ];
 
@@ -185,9 +204,30 @@ class ProjectListComponent extends CBitrixComponent
     public function prepareRows(Collection $projects, array $employees): array
     {
         return $projects->map(fn(Project $p): array => [
-            'id'   => $p->id,
-            'data' => $this->prepareRowData($p, $employees),
+            'id'      => $p->id,
+            'actions' => $this->prepareRowActions($p),
+            'data'    => $this->prepareRowData($p, $employees),
         ]);
+    }
+
+    public function prepareRowActions(Project $project): array
+    {
+        $gridId = self::GRID_ID;
+
+        return [
+            [
+                'text'    => 'Открыть проект',
+                'default' => false,
+                'href'    => CComponentEngine::makePathFromTemplate(
+                    $this->arParams['DETAIL_PAGE_URL'],
+                    ['PROJECT_ID' => $project->id],
+                )
+            ], [
+                'text'    => 'Удалить',
+                'default' => false,
+                'onclick' => "BX.B24.Project.Grid.Manager.deleteProject('$gridId', $project->id);",
+            ],
+        ];
     }
 
     public function prepareRowData(Project $project, array $employees): array
@@ -208,8 +248,35 @@ class ProjectListComponent extends CBitrixComponent
         ];
     }
 
+    public function deleteProjectAction(int $projectId): AjaxJson
+    {
+        $errorCollection = new ErrorCollection();
+        $result = [];
+
+        try {
+            $project = $this->projectService->getById($projectId);
+            $this->projectService->delete($project);
+        } catch (ServiceException $e) {
+            $errorCollection->add([
+                new Error('не удалось удалить проект.'),
+                Error::createFromThrowable($e)
+            ]);
+        }
+
+        return new AjaxJson(
+            $result,
+            $errorCollection->isEmpty() ? AjaxJson::STATUS_SUCCESS : AjaxJson::STATUS_ERROR,
+            $errorCollection
+        );
+    }
+
     public function formatEmployee(array $employee): string
     {
         return sprintf('<a href="%s">%s</a>', $employee['PROFILE_URL'], $employee['FORMATTED_NAME']);
+    }
+
+    public function configureActions(): array
+    {
+        return [];
     }
 }

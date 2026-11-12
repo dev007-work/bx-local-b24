@@ -2,8 +2,11 @@
 
 namespace B24\Project;
 
+use Bitrix\Main\ArgumentException;
+use Bitrix\Main\Engine\CurrentUser;
 use Bitrix\Main\ORM\Query\Filter\ConditionTree;
 use Bitrix\Main\SystemException;
+use Bitrix\Main\Type\DateTime;
 
 class Service
 {
@@ -99,24 +102,95 @@ class Service
         }
     }
 
+    /**
+     * @param Project $project
+     * @return Project
+     * @throws ServiceException
+     * @throws SystemException
+     * @throws ArgumentException
+     */
     public function create(Project $project): Project
     {
+        $currentTime = new DateTime();
+        $currentUser = CurrentUser::get()->getId();
 
+        $project->createdBy = $currentUser;
+        $project->createdAt = $currentTime;
+        $project->updatedBy = $currentUser;
+        $project->updatedAt = $currentTime;
+
+        $entityObject = ProjectTable::createObject()
+            ->setTitle($project->title)
+            ->setCreatedAt($project->createdAt)
+            ->setCreatedBy($project->createdBy)
+            ->setUpdatedAt($project->updatedAt)
+            ->setUpdatedBy($project->updatedBy)
+            ->setEstimatedCompletionDate($project->estimatedCompletionDate ?? '')
+            ->setCompletionDate($project->completionDate ?? '')
+            ->setDescription($project->description)
+            ->setResponsibleId($project->responsibleId)
+            ->setComment($project->comment)
+            ->setIncome($project->income);
+
+        $addResult = $entityObject->save();
+
+        if (!$addResult->isSuccess()) {
+            throw new ServiceException('Failed to add project', 0);
+        }
+
+        return $project->withId($addResult->getId());
     }
 
     public function update(Project $project): void
     {
+        $currentTime = new DateTime();
+        $currentUser = CurrentUser::get()->getId();
 
+        $project->updatedBy = $currentUser;
+        $project->updatedAt = $currentTime;
+
+        $actualProject = ProjectTable::getById($project->id)->fetchObject();
+        $entityObject = $actualProject
+            ->setTitle($project->title)
+            ->setCreatedAt($project->createdAt)
+            ->setCreatedBy($project->createdBy)
+            ->setUpdatedAt($project->updatedAt)
+            ->setUpdatedBy($project->updatedBy)
+            ->setEstimatedCompletionDate($project->estimatedCompletionDate ?? '')
+            ->setCompletionDate($project->completionDate ?? '')
+            ->setDescription($project->description)
+            ->setResponsibleId($project->responsibleId)
+            ->setComment($project->comment)
+            ->setIncome($project->income);
+
+        $addResult = $entityObject->save();
+
+        if (!$addResult->isSuccess()) {
+            throw new ServiceException('Failed to add project');
+        }
     }
 
     public function delete(Project $project): void
     {
+        $deleteResult = ProjectTable::getById($project->id)->fetchObject()->delete();
 
+        if (!$deleteResult->isSuccess()) {
+            throw new ServiceException('Failed to delete project', 0);
+        }
     }
 
-    public function getById(int $projectId): Project
+    public function getById(int $projectId): ?Project
     {
+        $criteria = new ConditionTree();
+        $criteria->where('ID', '=', $projectId);
 
+        $projects = $this->findProjects($criteria, ['ID' => 'DESC']);
+
+        if ($projects->isEmpty()) {
+            return null;
+        }
+
+        return $projects->get($projectId);
     }
 
     public function getByIds(int ...$projectIds): Collection
