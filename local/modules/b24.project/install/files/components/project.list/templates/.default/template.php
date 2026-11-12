@@ -1,4 +1,7 @@
 <?php
+
+use Bitrix\UI\Toolbar\Facade\Toolbar;
+
 defined('B_PROLOG_INCLUDED') || die();
 
 /**
@@ -6,6 +9,8 @@ defined('B_PROLOG_INCLUDED') || die();
  * @var array $arParams
  * @var array $arResult
  */
+
+Toolbar::addFilter($arResult['filter']);
 
 $APPLICATION->IncludeComponent(
     'bitrix:main.ui.grid',

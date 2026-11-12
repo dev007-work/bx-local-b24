@@ -1,7 +1,10 @@
 <?php
 
 use B24\Project\Collection;
+use B24\Project\Filter;
 use B24\Project\Integration\UI\FieldNameProvider;
+use B24\Project\Integration\UI\Filter\ProjectDataProvider;
+use B24\Project\Integration\UI\Filter\ProjectSettings;
 use B24\Project\Integration\UI\PageNavigationFactory;
 use B24\Project\Integration\Intranet\Employee\Service as EmployeeService;
 use B24\Project\Project;
@@ -31,12 +34,31 @@ class ProjectListComponent extends CBitrixComponent
 
     public function executeComponent(): void
     {
-        // постраничная навигация
+        $projectDataProvider = new ProjectDataProvider(
+            new ProjectSettings(self::GRID_ID)
+        );
+
         $gridOptions = new Options(self::GRID_ID);
+        $filterService = new Bitrix\Main\Filter\Filter(
+            $projectDataProvider->getID(),
+            $projectDataProvider
+        );
+
+        // данные полей в фильтре
+        $fields = $filterService->getValue();
+        $filter = new Filter(
+            $fields['TITLE'],
+            $fields['CREATED_AT'],
+            $fields['RESPONSIBLE_ID'],
+            $fields['ESTIMATED_COMPLETION_DATE'],
+            $fields['COMPLETION_DATE'],
+        );
+
+        // постраничная навигация
         $navParams = $gridOptions->GetNavParams();
         $navigation = $this->navigationFactory->create(
             $navParams['nPageSize'],
-            $this->projectService->count(),
+            $this->projectService->count($filter),
         );
 
         // сортировка
@@ -44,6 +66,7 @@ class ProjectListComponent extends CBitrixComponent
 
         // выборка проектов
         $projects = $this->projectService->getFragment(
+            $filter,
             $sort['sort'],
             $navigation->getPageSize(),
             $navigation->getCurrentPage(),
@@ -72,6 +95,13 @@ class ProjectListComponent extends CBitrixComponent
                 'AJAX_MODE'           => 'Y',
                 'AJAX_OPTION_JUMP'    => 'N',
                 'AJAX_OPTION_HISTORY' => 'N',
+            ],
+            'filter' => [
+                'FILTER'         => $filterService->getFieldArrays(),
+                'FILTER_ID'      => self::GRID_ID,
+                'GRID_ID'        => self::GRID_ID,
+                'ENABLE_LABEL'   => true,
+                'DISABLE_SEARCH' => true,
             ],
         ];
 

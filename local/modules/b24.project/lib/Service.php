@@ -8,14 +8,15 @@ use Bitrix\Main\SystemException;
 class Service
 {
     /**
+     * @param Filter $filter
      * @return int
      * @throws ServiceException
      */
-    public function count(): int
+    public function count(Filter $filter): int
     {
         try
         {
-            return ProjectTable::query()->queryCountTotal();
+            return ProjectTable::query()->where($filter->toCriteria())->queryCountTotal();
         }
         catch (SystemException $e)
         {
@@ -23,7 +24,7 @@ class Service
         }
     }
 
-    public function getFragment(array $order, int $size, int $page): Collection
+    public function getFragment(Filter $filter, array $order, int $size, int $page): Collection
     {
         if ($size < 0) {
             throw new ServiceException('Page size MUST be a positive integer', 0);
@@ -31,7 +32,7 @@ class Service
 
         $offset = (max($page, 1) - 1) * $size;
 
-        return $this->findProjects((new ConditionTree()), $order, $size, $offset);
+        return $this->findProjects($filter->toCriteria(), $order, $size, $offset);
     }
 
     /**
