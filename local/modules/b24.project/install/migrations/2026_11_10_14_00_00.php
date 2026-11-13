@@ -32,4 +32,4 @@ CopyDirFiles(
 );
 
 // запись даты версии в опцию (для миграции)
-//Option::set('b24.project', 'VERSION', 2026_11_10_14_30_00);
+Option::set('b24.project', 'VERSION', 2026_11_10_14_30_00);
