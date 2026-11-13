@@ -28,10 +28,20 @@ class RuleInjector
                                 {
                                     condition: [new RegExp('/invest/detail/[0-9]+/')],
                                     options: {
-                                        width: 900,
+                                        width: 1200,
                                         cacheable: false,
                                         label: {
                                             text: 'Проект'
+                                        }
+                                    }
+                                },
+                                {
+                                    condition: [new RegExp('/invest/history/[0-9]+/')],
+                                    options: {
+                                        width: 1200,
+                                        cacheable: false,
+                                        label: {
+                                            text: 'История'
                                         }
                                     }
                                 }

@@ -1,4 +1,7 @@
 <?php
+
+use Bitrix\UI\Toolbar\Facade\Toolbar;
+
 defined('B_PROLOG_INCLUDED') || die();
 
 /**
@@ -6,6 +9,10 @@ defined('B_PROLOG_INCLUDED') || die();
  * @var array $arParams
  * @var array $arResult
  */
+
+foreach ($arResult['toolbar']['buttons'] as $button) {
+    Toolbar::addButton($button);
+}
 
 $APPLICATION->SetTitle('Проект');
 $APPLICATION->IncludeComponent(

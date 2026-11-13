@@ -13,9 +13,10 @@ $APPLICATION->IncludeComponent(
     [
         'POPUP_COMPONENT_NAME'          => 'b24.project:project.detail',
         'POPUP_COMPONENT_TEMPLATE_NAME' => '.default',
-        'POPUP_COMPONENT_PARAMS'        => [
-            'PROJECT_ID'      => $arResult['VARIABLES']['PROJECT_ID'] ?? null,
-            'DETAIL_PAGE_URL' => $arResult['DETAIL_PAGE_URL'],
+        'POPUP_COMPONENT_PARAMS' => [
+            'PROJECT_ID'       => $arResult['VARIABLES']['PROJECT_ID'] ?? null,
+            'DETAIL_PAGE_URL'  => $arResult['DETAIL_PAGE_URL'],
+            'HISTORY_PAGE_URL' => $arResult['HISTORY_PAGE_URL'],
         ],
         'USE_UI_TOOLBAR'                => 'Y',
         'RELOAD_GRID_AFTER_SAVE'        => true,

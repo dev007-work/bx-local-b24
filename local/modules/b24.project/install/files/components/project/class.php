@@ -14,9 +14,10 @@ class ProjectComponent extends CBitrixComponent
         $page = CComponentEngine::parseComponentPath($root, $urlTemplates, $variables);
 
         $this->arResult = [
-            'VARIABLES'       => $variables,
-            'DETAIL_PAGE_URL' => $root . $urlTemplates['detail'],
-            'LIST_PAGE_URL'   => $root . $urlTemplates['list'],
+            'VARIABLES'        => $variables,
+            'DETAIL_PAGE_URL'  => $root . $urlTemplates['detail'],
+            'LIST_PAGE_URL'    => $root . $urlTemplates['list'],
+            'HISTORY_PAGE_URL' => $root . $urlTemplates['history'],
         ];
 
         $this->includeComponentTemplate($page ?: $this->arParams['DEFAULT_PAGE']);

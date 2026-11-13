@@ -16,8 +16,9 @@ $APPLICATION->IncludeComponent(
     [
         'SEF_FOLDER'    => '/invest/',
         'URL_TEMPLATES' => [
-            'list'   => 'list/',
-            'detail' => 'detail/#PROJECT_ID#/',
+            'list'    => 'list/',
+            'detail'  => 'detail/#PROJECT_ID#/',
+            'history' => 'history/#PROJECT_ID#/',
         ],
         'DEFAULT_PAGE'  => 'list',
     ]

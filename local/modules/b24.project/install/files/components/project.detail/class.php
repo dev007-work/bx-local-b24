@@ -11,6 +11,9 @@ use Bitrix\Main\Loader;
 use Bitrix\Main\ObjectException;
 use Bitrix\Main\Type\DateTime;
 use Bitrix\Main\Error;
+use Bitrix\UI\Buttons\Button;
+use Bitrix\UI\Buttons\Color;
+use Bitrix\UI\Buttons\Icon;
 
 defined('B_PROLOG_INCLUDED') || die();
 
@@ -43,6 +46,19 @@ class ProjectDetailComponent extends CBitrixComponent implements Controllerable
                     'ENABLE_CONFIG_CONTROL' => false,
                 ],
             ),
+            'toolbar' => [
+                'buttons' => [
+                    new Button([
+                        'text'  => 'История',
+                        'link'  => CComponentEngine::makePathFromTemplate(
+                            $this->arParams['HISTORY_PAGE_URL'],
+                            ['PROJECT_ID' => $project->id],
+                        ),
+                        'icon'  => Icon::LIST,
+                        'color' => Color::LIGHT_BORDER,
+                    ])
+                ]
+            ]
         ];
 
         $this->includeComponentTemplate();

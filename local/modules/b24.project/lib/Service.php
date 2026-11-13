@@ -4,12 +4,28 @@ namespace B24\Project;
 
 use Bitrix\Main\ArgumentException;
 use Bitrix\Main\Engine\CurrentUser;
+use Bitrix\Main\ORM\Fields\FieldTypeMask;
 use Bitrix\Main\ORM\Query\Filter\ConditionTree;
 use Bitrix\Main\SystemException;
 use Bitrix\Main\Type\DateTime;
 
 class Service
 {
+    public const TRACKED_FIELDS = [
+        'RESPONSIBLE_ID',
+        'TITLE',
+        'COMMENT',
+        'COMPLETION_DATE',
+        'ESTIMATED_COMPLETION_DATE',
+        'DESCRIPTION',
+        'INCOME',
+    ];
+
+    public function __construct(
+        private readonly History\Service $historyService = new History\Service()
+    )
+    {}
+
     /**
      * @param Filter $filter
      * @return int
@@ -138,7 +154,26 @@ class Service
             throw new ServiceException('Failed to add project', 0);
         }
 
-        return $project->withId($addResult->getId());
+        $project = $project->withId($addResult->getId());
+        $history = array_filter(
+            $entityObject->collectValues(fieldsMask: FieldTypeMask::FLAT),
+            static fn(string $fieldName): bool => in_array($fieldName, Service::TRACKED_FIELDS, true),
+            ARRAY_FILTER_USE_KEY,
+        );
+
+        foreach ($history as $field => $value) {
+            $this->historyService->register(new History\Entry(
+                null,
+                $project->id,
+                $project->responsibleId,
+                $field,
+                null,
+                $value,
+                $project->createdAt,
+            ));
+        }
+
+        return $project;
     }
 
     public function update(Project $project): void
@@ -163,10 +198,35 @@ class Service
             ->setComment($project->comment)
             ->setIncome($project->income);
 
+        $history = [];
+        foreach ($entityObject->collectValues(fieldsMask: FieldTypeMask::FLAT) as $field => $currentValue) {
+            if (!in_array($field, Service::TRACKED_FIELDS, true)) {
+                continue;
+            }
+
+            if (!$entityObject->isChanged($field)) {
+                continue;
+            }
+
+            $history[] = new History\Entry(
+                null,
+                $project->id,
+                $project->updatedBy,
+                $field,
+                $entityObject->remindActual($field),
+                $currentValue,
+                $project->updatedAt,
+            );
+        }
+
         $addResult = $entityObject->save();
 
         if (!$addResult->isSuccess()) {
             throw new ServiceException('Failed to add project');
+        }
+
+        foreach ($history as $item) {
+            $this->historyService->register($item);
         }
     }
 
@@ -177,6 +237,8 @@ class Service
         if (!$deleteResult->isSuccess()) {
             throw new ServiceException('Failed to delete project', 0);
         }
+
+        $this->historyService->clearByProject($project);
     }
 
     public function getById(int $projectId): ?Project
@@ -195,6 +257,13 @@ class Service
 
     public function getByIds(int ...$projectIds): Collection
     {
+        if (empty($projectIds)) {
+            return new Collection();
+        }
 
+        $criteria = new ConditionTree();
+        $criteria->whereIn('ID', $projectIds);
+
+        return $this->findProjects($criteria, ['ID' => 'DESC']);
     }
 }

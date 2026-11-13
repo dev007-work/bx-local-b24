@@ -15,4 +15,9 @@ class FieldNameProvider
     {
         return Loc::getMessage("PROJECT_{$code}_FIELD_LABEL") ?? $code;
     }
+
+    public function getHistoryFieldName(string $code): string
+    {
+        return Loc::getMessage("HISTORY_{$code}_FIELD_LABEL") ?? $code;
+    }
 }
